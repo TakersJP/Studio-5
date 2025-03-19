@@ -10,11 +10,15 @@ public class GameManager : SingletonMonoBehavior<GameManager>
 
     [SerializeField] private Ball ball;
     [SerializeField] private Transform bricksContainer;
+    [SerializeField] private ScoreCounterUI scoreCounter;
 
     [SerializeField] private List<GameObject> heartObjects; // list of heart GameObjects (instead of just Images)
+    [SerializeField] private GameObject gameOverPanel; // game over UI panel
 
     private int currentBrickCount;
     private int totalBrickCount;
+
+    private int score = 0;
 
     private void OnEnable()
     {
@@ -42,6 +46,7 @@ public class GameManager : SingletonMonoBehavior<GameManager>
         // implement particle effect here
         // add camera shake here
         currentBrickCount--;
+        AddScore(1);
         Debug.Log($"Destroyed Brick at {position}, {currentBrickCount}/{totalBrickCount} remaining");
         if (currentBrickCount == 0) SceneHandler.Instance.LoadNextScene();
     }
@@ -51,18 +56,16 @@ public class GameManager : SingletonMonoBehavior<GameManager>
         currentLives--;
         // update lives on HUD here
         UpdateHeartsUI();
-        // game over UI if currentLives < 1, then exit to main menu after delay
+        // game over UI if currentLives <= 0, show Game Over screen
         if (currentLives <= 0)
         {
-            SceneHandler.Instance.LoadMenuScene();
+            StartCoroutine(GameOverSequence());
         }
         else
         {
             ball.ResetBall();
         }
     }
-<<<<<<< Updated upstream
-=======
 
     public void AddScore(int amount)
     {
@@ -77,5 +80,13 @@ public class GameManager : SingletonMonoBehavior<GameManager>
             heartObjects[i].SetActive(i < currentLives);
         }
     }
->>>>>>> Stashed changes
+
+    private IEnumerator GameOverSequence()
+    {
+        Time.timeScale = 0f; // Freeze game
+        gameOverPanel.SetActive(true); // show game over UI
+        yield return new WaitForSecondsRealtime(1.5f);
+        Time.timeScale = 1f; // reset time
+        SceneHandler.Instance.LoadMenuScene();
+    }
 }
